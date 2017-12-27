@@ -83,7 +83,8 @@ def print_stats(num, den, res, tol):
   print('tolerance: ' + str(t))
   print('percent difference in error/tolerance: ' + str(p_de))
   print('remember, smaller is better for percent difference and error, and bigger is better for the percent error between the two!')
-  
+  print('and also, arbitrary statistics are arbitary. :-/')
+    
 def find_min(orig):
   temp = orig[0]
   print (len(orig))
