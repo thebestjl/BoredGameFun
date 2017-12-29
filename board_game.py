@@ -1,3 +1,22 @@
+#TODO: Allow incorrect attack selections to try again.
+
+#TODO: Allow player to skip turn.
+
+#TODO: Implement turn counter. After a certain number of turns, all of a player's surviving pieces lose 1 HP at the end of each turn.
+# Places an upper limit on game length.
+
+#TODO: Allow customizable piece selection and placement.
+
+#TODO: Allow varied board sizes.
+
+#TODO: Add randomly varying attack strength. Will require larger health pools.
+
+#TODO: Add incredibly basic AI that will determine if a piece is in attack position and prioritize attacking the lowest health target.
+# Possibly even flee once it gets to low health. If no piece is in attack position, then select a piece that's close (within two spaces) 
+# to an opponent and move in their direction. Otherwise, move randomly.
+
+#TODO: Allow multiple pieces to attack at once? Can't decide.
+
 class player():
   def __init__(self, pieces):
     self.pieces = pieces
@@ -20,6 +39,7 @@ class player():
 
 
 class piece():
+  #TODO: HARDCODE SYMBOL TO HP MAP
   def __init__(self, symbol, hp, coords):
     self.symbol = symbol
     self.hp = hp
@@ -52,7 +72,6 @@ class piece():
     
 
 class board_game():
-  #add board_small and board_displayed where displayed has lines and small is just pieces. Build displayed from small.
   def __init__(self, height = None, width = 0):
     if height != None:
       self.board_height = height
@@ -68,7 +87,6 @@ class board_game():
     
     self.game_pieces = ['x', 't', 'o']
     
-    #Eventually, let player choose which pieces to use and vary total number based on board size
     p1_o = piece(self.game_pieces[0], 2, [self.board_height - 1, 1])
     p1_t = piece(self.game_pieces[1], 4, [self.board_height - 1, 2])
     p1_x = piece(self.game_pieces[2], 3, [self.board_height - 1, 3])
@@ -89,9 +107,9 @@ class board_game():
     else:
       print('Player 2:')
       
-    piece_select_str = 'Choose your move or type ''help'': '
+    piece_select_str = 'Choose your move by typing the piece''s symbol or type ''help'': '
     for i in range(cur_player.get_pieces_remaining()):
-      piece_select_str += '\n\t' + str(i) + ' for ' + cur_player.get_pieces()[i].get_symbol()
+      piece_select_str += '\n\t' + cur_player.get_pieces()[i].get_symbol()
     
     piece_select_str += ':\n'
     piece_select = input(piece_select_str)
@@ -104,9 +122,8 @@ class board_game():
     elif piece_select.strip().lower() == 'board':
       self.print_board()
     else:
-      i = 0
       for i in range(cur_player.get_pieces_remaining()):
-        if piece_select == str(i):
+        if piece_select.lower() == cur_player.get_pieces()[i].get_symbol().lower():
           self.parse_action(this_player, i)
           self.update_board()
           return
@@ -119,37 +136,37 @@ class board_game():
     cur_player = self.get_players(this_player)[0]
     
     if cur_player.get_pieces()[index].get_symbol().lower() == self.game_pieces[0]:
-      move_select = input('1 for northwest\n2 for southwest\n3 for southeast\n4 for northeast\n5 to attack:\n')
+      move_select = input('\t7 or Q for northwest\n\t1 or Z for southwest\n\t3 or C for southeast\n\t9 or E for northeast\n\t5 or S to attack\n')
       
-      if move_select == str(5):
+      if [str(5), 's', 'S'].count(move_select) > 0:
         self.attack(this_player, index)
         return
-      elif ['1', '2', '3', '4'].count(move_select) > 0:
-        self.move_o(this_player, int(move_select), index)
+      elif ['7', '1', '3', '9', 'q', 'Q', 'z', 'Z', 'c', 'C', 'e', 'E'].count(move_select) > 0:
+        self.move_o(this_player, move_select, index)
         return
       else:
         self.parse_action(this_player, input('Incorrect input. Try again: '))
 
     elif cur_player.get_pieces()[index].get_symbol().lower() == self.game_pieces[1]:
-      move_select = input('Press 1 for northwest\n2 for southwest\n3 for southeast\n4 for northeast\n5 for north\n6 for west\n7 for south\n8 for east\n9 to attack:\n')
+      move_select = input('\t7 or Q for northwest\n\t1 or Z for southwest\n\t3 or C for southeast\n\t9 or E for northeast\n\t8 or W for north\n\t4 or A for west\n\t2 or X for south\n\t6 or D for east\n\t5 or S to attack\n')
       
-      if move_select == str(9):
+      if move_select == str(5) or move_select == 's' or move_select == 'S':
         self.attack(this_player, index)
         return
-      elif ['1', '2', '3', '4', '5', '6', '7', '8'].count(move_select) > 0:
-        self.move_t(this_player, int(move_select), index)
+      elif ['7', '1', '3', '9', '8', '4', '2', '6', 'q', 'Q', 'z', 'Z', 'c', 'C', 'e', 'E', 'w', 'W', 'a', 'A', 'x', 'X', 'd', 'D'].count(move_select) > 0:
+        self.move_t(this_player, move_select, index)
         return
       else:
         self.parse_action(this_player, input('Incorrect input. Try again: '))
     
     elif cur_player.get_pieces()[index].get_symbol().lower() == self.game_pieces[2]:
-      move_select = input('Press 1 for north\n2 for west\n3 for south\n4 for east\n5 to attack:\n')
+      move_select = input('\t8 or W for north\n\t4 or A for west\n\t2 or X for south\n\t6 or D for east\n\t5 or S to attack\n')
     
       if move_select == str(5):
         self.attack(this_player, index)
         return
-      elif ['1', '2', '3', '4'].count(move_select) > 0:
-        self.move_x(this_player, int(move_select), index)
+      elif ['8', '4', '2', '6', 'w', 'W', 'a', 'A', 'x', 'X', 'd', 'D'].count(move_select) > 0:
+        self.move_x(this_player, move_select, index)
         return
       else:
         self.parse_action(this_player, input('Incorrect input. Try again: '))
@@ -190,42 +207,51 @@ class board_game():
   ---Movement rules
   """
   def move_o(self, this_player, direction, index):
-    if direction == 1:
+    if direction == '7':
       self.move_nw(this_player, index)
-    elif direction == 2:
+    elif direction == '1':
       self.move_sw(this_player, index)
-    elif direction == 3:
+    elif direction == '3':
       self.move_se(this_player, index)
-    else:
+    elif direction == '9':
       self.move_ne(this_player, index)
+    else:
+      print('Incorrect input choice. Try again.')
+      self.parse_action(this_player, index)
     
   def move_t(self, this_player, direction, index):
-    if direction == 1:
+    if direction == '7':
       self.move_nw(this_player, index, True)
-    elif direction == 2:
+    elif direction == '1':
       self.move_sw(this_player, index, True)
-    elif direction == 3:
+    elif direction == '3':
       self.move_se(this_player, index, True)
-    elif direction == 4:
+    elif direction == '9':
       self.move_ne(this_player, index, True)
-    elif direction == 5:
+    elif direction == '8':
       self.move_n(this_player, index, True)
-    elif direction == 6:
+    elif direction == '4':
       self.move_w(this_player, index, True)
-    elif direction == 7:
+    elif direction == '2':
       self.move_se(this_player, index, True)
-    else:
+    elif direction == '6':
       self.move_e(this_player, index, True)
+    else:
+      print('Incorrect input choice. Try again.')
+      self.parse_action(this_player, index)
       
   def move_x(self, this_player, direction, index):
-    if direction == 1:
+    if direction == '8':
       self.move_n(this_player, index)
-    elif direction == 2:
+    elif direction == '4':
       self.move_w(this_player, index)
-    elif direction == 3:
+    elif direction == '2':
       self.move_s(this_player, index)
-    else:
+    elif direction == '6':
       self.move_e(this_player, index)
+    else:
+      print('Incorrect input choice. Try again.')
+      self.parse_action(this_player, index)
     
   """
   --Directional functions
@@ -239,7 +265,7 @@ class board_game():
     for p in opp_pieces:
       if p.get_coords()[0] == new_coords[0] and p.get_coords()[1] == new_coords[1]:
         print('Error: blocked by opponent.')
-        return
+        return self.parse_action(this_player, index)
     
     while (multimove and new_coords[0] - 1 >= 0 and new_coords[1] - 1 >= 0):
       for p in opp_pieces:
@@ -261,7 +287,7 @@ class board_game():
     for p in opp_pieces:
       if p.get_coords()[0] == new_coords[0] and p.get_coords()[1] == new_coords[1]:
         print('Error: blocked by opponent.')
-        return
+        return self.parse_action(this_player, index)
     
     while (multimove and new_coords[0] + 1 < self.board_height and new_coords[1] - 1 >= 0):
       for p in opp_pieces:
@@ -283,7 +309,7 @@ class board_game():
     for p in opp_pieces:
       if p.get_coords()[0] == new_coords[0] and p.get_coords()[1] == new_coords[1]:
         print('Error: blocked by opponent.')
-        return
+        return self.parse_action(this_player, index)
     
     while (multimove and new_coords[0] + 1 < self.board_height and new_coords[1] + 1 < self.board_width):
       for p in opp_pieces:
@@ -305,7 +331,7 @@ class board_game():
     for p in opp_pieces:
       if p.get_coords()[0] == new_coords[0] and p.get_coords()[1] == new_coords[1]:
         print('Error: blocked by opponent.')
-        return
+        return self.parse_action(this_player, index)
     
     while (multimove and new_coords[0] - 1 >= 0 and new_coords[1] + 1 < self.board_width):
       for p in opp_pieces:
@@ -327,7 +353,7 @@ class board_game():
     for p in opp_pieces:
       if p.get_coords()[0] == new_coords[0] and p.get_coords()[1] == new_coords[1]:
         print('Error: blocked by opponent.')
-        return
+        return self.parse_action(this_player, index)
     
     while (multimove and new_coords[0] - 1 >= 0):
       for p in opp_pieces:
@@ -349,7 +375,7 @@ class board_game():
     for p in opp_pieces:
       if p.get_coords()[0] == new_coords[0] and p.get_coords()[1] == new_coords[1]:
         print('Error: blocked by opponent.')
-        return
+        return self.parse_action(this_player, index)
     
     while (multimove and new_coords[1] - 1 >= 0):
       for p in opp_pieces:
@@ -371,7 +397,7 @@ class board_game():
     for p in opp_pieces:
       if p.get_coords()[0] == new_coords[0] and p.get_coords()[1] == new_coords[1]:
         print('Error: blocked by opponent.')
-        return
+        return self.parse_action(this_player, index)
       
     while (multimove and new_coords[0] + 1 < self.board_height):
       for p in opp_pieces:
@@ -393,7 +419,7 @@ class board_game():
     for p in opp_pieces:
       if p.get_coords()[0] == new_coords[0] and p.get_coords()[1] == new_coords[1]:
         print('Error: blocked by opponent.')
-        return
+        return self.parse_action(this_player, index)
       
     while (multimove and new_coords[1] + 1 < self.board_width):
       for p in opp_pieces:
