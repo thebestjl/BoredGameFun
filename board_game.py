@@ -60,6 +60,7 @@ class piece():
     
     
   def update_coords(self, coords):
+    print('A move happened for ' + self.symbol)
     self.coords = coords
   
   
@@ -104,13 +105,15 @@ class board_game():
     self.p1 = player([p1_o, p1_t, p1_x])
     self.p2 = player([p2_o, p2_t, p2_x])
     
+    self.players = [self.p1, self.p2]
+    
     self.turns_left = 20
 
     self.update_board()
   
   
   def turn(self, this_player):
-    cur_player = self.get_players(this_player)[0]
+    cur_player = self.players[this_player - 1]
     if this_player == 1:
       print('Player 1:')
     else:
@@ -146,8 +149,7 @@ class board_game():
     
     
   def parse_action(self, this_player, index):
-    cur_player = self.get_players(this_player)[0]
-    
+    cur_player = self.players[this_player - 1]
     if cur_player.get_pieces()[index].get_symbol().lower() == self.game_pieces[0]:
       move_select = input('\t7 or Q for northwest\n\t1 or Z for southwest\n\t3 or C for southeast\n\t9 or E for northeast\n\t5 or S to attack\n')
       
@@ -190,7 +192,6 @@ class board_game():
   --Attack Function
   """
   def attack(self, this_player, index):
-    players = self.get_players(this_player)
     hit = False
     movement = 0
     if this_player == 1:
@@ -198,25 +199,21 @@ class board_game():
     else:
       movement = 1
     
-      
-    cur_player = players[0]
-    other_player = players[1]
+    other_player = self.players[this_player % 2]
     
-    cur_piece = cur_player.get_pieces()[index]
-    cur_piece_coords = cur_piece.get_coords()
+    cur_piece = self.players[this_player - 1].get_pieces()[index]
+    cur_piece_coords = cur_piece.get_coords()[:]
     opp_pieces = other_player.get_pieces()
     
-    for piece in other_player.get_pieces():
-      opp_coords = piece.get_coords()
+    for p in opp_pieces:
+      opp_coords = p.get_coords()[:]
       if cur_piece_coords[0] + movement == opp_coords[0] and cur_piece_coords[1] == opp_coords[1]:
-        piece.update_hp()
+        p.update_hp()
         hit = True
         
-        if piece.get_hp() == 0:
-          print('Piece ' + piece.get_symbol() + ' is destroyed.')
+        if p.get_hp() == 0:
+          print('Piece ' + p.get_symbol() + ' is destroyed.')
           other_player.remove_pieces()
-          
-      self.update_players(this_player, cur_player, other_player)
   
     if not hit:
       print('Failed to hit.')
@@ -280,10 +277,10 @@ class board_game():
   --Directional functions
   """
   def move_nw(self, this_player, index, multimove = False):
-    players = self.get_players(this_player)
-    cur_piece_coords = players[0].get_pieces()[index].get_coords()
-    opp_pieces = players[1].get_pieces()
+    cur_piece_coords = self.players[this_player - 1].get_pieces()[index].get_coords()[:]
+    opp_pieces = self.players[this_player % 2].get_pieces()
     new_coords = [(cur_piece_coords[0] - 1) % self.board_height, (cur_piece_coords[1] - 1) % self.board_width]
+    cur_player = self.players[this_player - 1]
     
     for p in opp_pieces:
       if p.get_coords()[0] == new_coords[0] and p.get_coords()[1] == new_coords[1]:
@@ -293,21 +290,20 @@ class board_game():
     while (multimove and new_coords[0] - 1 >= 0 and new_coords[1] - 1 >= 0):
       for p in opp_pieces:
         if p.get_coords()[0] == new_coords[0] - 1 and p.get_coords()[1] == new_coords[1] - 1:
-          players[0].get_pieces()[index].update_coords(new_coords)
+          cur_player.get_pieces()[index].update_coords(new_coords)
           return True
         
       new_coords = [(new_coords[0] - 1) % self.board_height, (new_coords[1] - 1) % self.board_width]
       
-    players[0].get_pieces()[index].update_coords(new_coords)
-    self.update_players(this_player, players[0], players[1])
+    cur_player.get_pieces()[index].update_coords(new_coords)
     return True
     
     
   def move_sw(self, this_player, index, multimove = False):
-    players = self.get_players(this_player)
-    cur_piece_coords = players[0].get_pieces()[index].get_coords()
-    opp_pieces = players[1].get_pieces()
+    cur_piece_coords = self.players[this_player - 1].get_pieces()[index].get_coords()[:]
+    opp_pieces = self.players[this_player % 2].get_pieces()
     new_coords = [(cur_piece_coords[0] + 1) % self.board_height, (cur_piece_coords[1] - 1) % self.board_width]
+    cur_player = self.players[this_player - 1]
     
     for p in opp_pieces:
       if p.get_coords()[0] == new_coords[0] and p.get_coords()[1] == new_coords[1]:
@@ -317,21 +313,20 @@ class board_game():
     while (multimove and new_coords[0] + 1 < self.board_height and new_coords[1] - 1 >= 0):
       for p in opp_pieces:
         if p.get_coords()[0] == new_coords[0] + 1 and p.get_coords()[1] == new_coords[1] - 1:
-          players[0].get_pieces()[index].update_coords(new_coords)
+          cur_player.get_pieces()[index].update_coords(new_coords)
           return True
         
       new_coords = [(new_coords[0] + 1) % self.board_height, (new_coords[1] - 1) % self.board_width]
       
-    players[0].get_pieces()[index].update_coords(new_coords)
-    self.update_players(this_player, players[0], players[1])
+    cur_player.get_pieces()[index].update_coords(new_coords)
     return True
   
   
   def move_se(self, this_player, index, multimove = False):
-    players = self.get_players(this_player)
-    cur_piece_coords = players[0].get_pieces()[index].get_coords()
-    opp_pieces = players[1].get_pieces()
+    cur_piece_coords = self.players[this_player - 1].get_pieces()[index].get_coords()[:]
+    opp_pieces = self.players[this_player % 2].get_pieces()
     new_coords = [(cur_piece_coords[0] + 1) % self.board_height, (cur_piece_coords[1] + 1) % self.board_width]
+    cur_player = self.players[this_player - 1]
     
     for p in opp_pieces:
       if p.get_coords()[0] == new_coords[0] and p.get_coords()[1] == new_coords[1]:
@@ -341,21 +336,20 @@ class board_game():
     while (multimove and new_coords[0] + 1 < self.board_height and new_coords[1] + 1 < self.board_width):
       for p in opp_pieces:
         if p.get_coords()[0] == new_coords[0] + 1 and p.get_coords()[1] == new_coords[1] + 1:
-          players[0].get_pieces()[index].update_coords(new_coords)
+          cur_player.get_pieces()[index].update_coords(new_coords)
           return True
         
       new_coords = [(new_coords[0] + 1) % self.board_height, (new_coords[1] + 1) % self.board_width]
-      
-    players[0].get_pieces()[index].update_coords(new_coords)
-    self.update_players(this_player, players[0], players[1])
+
+    cur_player.get_pieces()[index].update_coords(new_coords)
     return True
     
     
   def move_ne(self, this_player, index, multimove = False):
-    players = self.get_players(this_player)
-    cur_piece_coords = players[0].get_pieces()[index].get_coords()
-    opp_pieces = players[1].get_pieces()
+    cur_piece_coords = self.players[this_player - 1].get_pieces()[index].get_coords()[:]
+    opp_pieces = self.players[this_player % 2].get_pieces()
     new_coords = [(cur_piece_coords[0] - 1) % self.board_height, (cur_piece_coords[1] + 1) % self.board_width]
+    cur_player = self.players[this_player - 1]
     
     for p in opp_pieces:
       if p.get_coords()[0] == new_coords[0] and p.get_coords()[1] == new_coords[1]:
@@ -365,20 +359,19 @@ class board_game():
     while (multimove and new_coords[0] - 1 >= 0 and new_coords[1] + 1 < self.board_width):
       for p in opp_pieces:
         if p.get_coords()[0] == new_coords[0] - 1 and p.get_coords()[1] == new_coords[1] + 1:
-          players[0].get_pieces()[index].update_coords(new_coords)
+          cur_player.get_pieces()[index].update_coords(new_coords)
           return True
         
       new_coords = [(new_coords[0] - 1) % self.board_height, (new_coords[1] + 1) % self.board_width]
       
-    players[0].get_pieces()[index].update_coords(new_coords)
-    self.update_players(this_player, players[0], players[1])
+    cur_player.get_pieces()[index].update_coords(new_coords)
     return True
     
     
   def move_n(self, this_player, index, multimove = False):
-    players = self.get_players(this_player)
-    cur_piece_coords = players[0].get_pieces()[index].get_coords()
-    opp_pieces = players[1].get_pieces()
+    cur_piece_coords = self.players[this_player - 1].get_pieces()[index].get_coords()[:]
+    opp_pieces = self.players[this_player % 2].get_pieces()
+    cur_player = self.players[this_player - 1]
     new_coords = [(cur_piece_coords[0]  - 1) % self.board_height, (cur_piece_coords[1]) % self.board_width]
     
     for p in opp_pieces:
@@ -389,20 +382,19 @@ class board_game():
     while (multimove and new_coords[0] - 1 >= 0):
       for p in opp_pieces:
         if p.get_coords()[0] == new_coords[0] - 1 and p.get_coords()[1] == new_coords[1]:
-          players[0].get_pieces()[index].update_coords(new_coords)
+          cur_player.get_pieces()[index].update_coords(new_coords)
           return True
         
       new_coords[0] = (new_coords[0] - 1) % self.board_height
       
-    players[0].get_pieces()[index].update_coords(new_coords)
-    self.update_players(this_player, players[0], players[1])
+    cur_player.get_pieces()[index].update_coords(new_coords)
     return True
     
     
   def move_w(self, this_player, index, multimove = False):
-    players = self.get_players(this_player)
-    cur_piece_coords = players[0].get_pieces()[index].get_coords()
-    opp_pieces = players[1].get_pieces()
+    cur_piece_coords = self.players[this_player - 1].get_pieces()[index].get_coords()[:]
+    opp_pieces = self.players[this_player % 2].get_pieces()
+    cur_player = self.players[this_player - 1]
     new_coords = [(cur_piece_coords[0]) % self.board_height, (cur_piece_coords[1] - 1) % self.board_width]
     
     for p in opp_pieces:
@@ -413,20 +405,19 @@ class board_game():
     while (multimove and new_coords[1] - 1 >= 0):
       for p in opp_pieces:
         if p.get_coords()[0] == new_coords[0] and p.get_coords()[1] == new_coords[1] - 1:
-          players[0].get_pieces()[index].update_coords(new_coords)
+          cur_player.get_pieces()[index].update_coords(new_coords)
           return True
         
       new_coords[1] = (new_coords[1] - 1) % self.board_width
       
-    players[0].get_pieces()[index].update_coords(new_coords)
-    self.update_players(this_player, players[0], players[1])
+    cur_player.get_pieces()[index].update_coords(new_coords)
     return True
     
     
   def move_s(self, this_player, index, multimove = False):
-    players = self.get_players(this_player)
-    cur_piece_coords = players[0].get_pieces()[index].get_coords()
-    opp_pieces = players[1].get_pieces()
+    cur_piece_coords = self.players[this_player - 1].get_pieces()[index].get_coords()[:]
+    opp_pieces = self.players[this_player % 2].get_pieces()
+    cur_player = self.players[this_player - 1]
     new_coords = [(cur_piece_coords[0] + 1) % self.board_height, (cur_piece_coords[1]) % self.board_width]
     
     for p in opp_pieces:
@@ -437,20 +428,19 @@ class board_game():
     while (multimove and new_coords[0] + 1 < self.board_height):
       for p in opp_pieces:
         if p.get_coords()[0] == new_coords[0] + 1 and p.get_coords()[1] == new_coords[1]:
-          players[0].get_pieces()[index].update_coords(new_coords)
+          cur_player.get_pieces()[index].update_coords(new_coords)
           return True
         
       new_coords[0] = (new_coords[0] + 1) % self.board_height
       
-    players[0].get_pieces()[index].update_coords(new_coords)
-    self.update_players(this_player, players[0], players[1])
+    cur_player.get_pieces()[index].update_coords(new_coords)
     return True
     
     
   def move_e(self, this_player, index, multimove = False):
-    players = self.get_players(this_player)
-    cur_piece_coords = players[0].get_pieces()[index].get_coords()
-    opp_pieces = players[1].get_pieces()
+    cur_piece_coords = self.players[this_player - 1].get_pieces()[index].get_coords()[:]
+    opp_pieces = self.players[this_player % 2].get_pieces()
+    cur_player = self.players[this_player - 1]
     new_coords = [(cur_piece_coords[0]) % self.board_height, (cur_piece_coords[1] + 1) % self.board_width]
     
     for p in opp_pieces:
@@ -461,35 +451,18 @@ class board_game():
     while (multimove and new_coords[1] + 1 < self.board_width):
       for p in opp_pieces:
         if p.get_coords()[0] == new_coords[0] and p.get_coords()[1] == new_coords[1] + 1:
-          players[0].get_pieces()[index].update_coords(new_coords)
+          cur_player.get_pieces()[index].update_coords(new_coords)
           return True
         
       new_coords[1] = (new_coords[1] + 1) % self.board_width
       
-    players[0].get_pieces()[index].update_coords(new_coords)
-    self.update_players(this_player, players[0], players[1])
+    cur_player.get_pieces()[index].update_coords(new_coords)
     return True
   
   
   """
   ---Helper functions
   """
-  def get_players(self, this_player):
-    if this_player == 1:
-      return [self.p1, self.p2]
-    else:
-      return [self.p2, self.p1]
-  
-  
-  def update_players(self, this_player, cur_player, other_player):
-    if this_player == 1:
-      self.p1 = cur_player
-      self.p2 = other_player
-    else:
-      self.p2 = cur_player
-      self.p1 = other_player
-  
-  
   def update_board(self):
     self.board = []
     for i in range(self.board_height):
@@ -515,14 +488,13 @@ class board_game():
     for i in range(self.p1.get_pieces_remaining()):
       cur_piece = self.p1.get_pieces()[i]
       hp_str += '\t' + cur_piece.get_symbol() + ' has ' + str(cur_piece.get_hp()) + ' remaining.\n'
+      hp_str += '\t  ' + cur_piece.get_symbol() + ' located at: ' + str(cur_piece.get_coords()[:]) + '\n'
     
     hp_str += '\nPlayer 2 HP:\n'
     for i in range(self.p2.get_pieces_remaining()):
       cur_piece = self.p2.get_pieces()[i]
       hp_str += '\t' + cur_piece.get_symbol() + ' has ' + str(cur_piece.get_hp()) + ' remaining.\n'
-    
-    hp_str += '\nPlayer 1 has ' + str(self.p1.get_pieces_remaining()) + ' pieces remaining.\n'
-    hp_str += '\nPlayer 2 has ' + str(self.p2.get_pieces_remaining()) + ' pieces remaining.\n'
+      hp_str += '\t  ' + cur_piece.get_symbol() + ' located at: ' + str(cur_piece.get_coords()[:]) + '\n'
     
     print(hp_str)
 
@@ -548,14 +520,15 @@ class board_game():
     
     
   def damage_all_pieces(self):
-    for piece in self.p1.get_pieces():
-      piece.update_hp()
+    for p in self.p1.get_pieces():
+      p.update_hp()
     
-    for piece in self.p2.get_pieces():
-      piece.update_hp()
+    for p in self.p2.get_pieces():
+      p.update_hp()
       
     self.p1.remove_pieces()
     self.p2.remove_pieces()
+     
      
   """
   ---AI!
@@ -572,6 +545,7 @@ class board_game():
       print(plyr_str + ' attacked!')
       return True
     elif self.ai_move_to_attack(this_player):
+      print(plyr_str + ' moved to attack position!')
       return True
     elif self.ai_move(this_player):
       return True
@@ -579,38 +553,38 @@ class board_game():
     return False
     
 
-  def ai_attack(self, this_player, piece):
-    players = self.get_players(this_player)
-    cur_player = players[0]
-    other_player = players[1]
+  def ai_attack(self, this_player):
+    print('AI planning to attack')
+    cur_player = self.players[this_player - 1]
+    other_player = self.players[this_player % 2]
 
     if this_player == 1:
       direction = -1
     else:
       direction = 1
 
-    opp_hp = 1000
-    dfndr = -1
+    dfndr = None
     for i in range(cur_player.get_pieces_remaining()):
-      cur_piece_attk_coords = cur_player.get_pieces().get_coords()
+      cur_piece_attk_coords = cur_player.get_pieces()[i].get_coords()[:]
       cur_piece_attk_coords[0] = (cur_piece_attk_coords[0] + direction) % self.board_height
       for j in range(other_player.get_pieces_remaining()):
-        if other_player.get_pieces()[j].get_coords() == cur_piece_attk_coords and other_player.get_pieces()[j].get_hp() < opp_hp:
+        if other_player.get_pieces()[j].get_coords()[:] == cur_piece_attk_coords \
+          and (dfndr is None or other_player.get_pieces()[j].get_hp() < other_player.get_pieces()[dfndr].get_hp()):
           dfndr = j
-          opp_hp = other_player.get_pieces()[j].get_hp()
 
-    if attkr > -1 and dfndr > -1:
+    if dfndr is not None:
       other_player.get_pieces()[dfndr].update_hp()
       other_player.remove_pieces()
+      print('AI Did attack')
       return True
 
     return False
 
 
   def ai_move_to_attack(self, this_player):
-    players = self.get_players(this_player)
-    cur_player = players[0]
-    other_player = players[1]
+    print('AI Did Not Attack. AI Will Attempt Attack Formation')
+    cur_player = self.players[this_player - 1]
+    other_player = self.players[this_player % 2]
 
     if this_player == 1:
       direction = -1
@@ -619,156 +593,196 @@ class board_game():
 
     o_p_coords = []
     for o_p in other_player.get_pieces():
-      o_p_coords.append(o_p.get_coords())
+      o_p_coords.append(o_p.get_coords()[:])
 
     for c_p in cur_player.get_pieces():
-      c_p_c = c_p.get_coords()
+      c_p_c = c_p.get_coords()[:]
       for o_p in other_player.get_pieces():
-        if c_p.get_symbol().strip().lower() == self.game_pieces[0]: #o
-          o_coords = [(c_p_c[0] + direction) % self.board_height, (c_p_c[1] - 1) % self.board_width]
-          oo_coords = o_coords = [(c_p_c[0] + 2 * direction) % self.board_height, (c_p_c[1] - 1) % self.board_width]
-          if o_p_coords.count(o_coords) == 0 and oo_coords == o_p.get_coords():
-            c_p.update_coords(o_coords)
+        if c_p.get_symbol().strip().lower() == self.game_pieces[0]: #x
+          #nw/sw
+          x_coords = [(c_p_c[0] + direction) % self.board_height, (c_p_c[1] - 1) % self.board_width]
+          ox_coords = [(c_p_c[0] + 2 * direction) % self.board_height, (c_p_c[1] - 1) % self.board_width]
+          if o_p_coords.count(x_coords) == 0 and ox_coords == o_p.get_coords()[:]:
+            c_p.update_coords(x_coords)
+            print ('AI-x moved nw/sw to attack position')
             return True
-
-          o_coords = [(c_p_c[0] + direction) % self.board_height, (c_p_c[1] + 1) % self.board_width]
-          oo_coords = o_coords = [(c_p_c[0] + 2 * direction) % self.board_height, (c_p_c[1] + 1) % self.board_width]
-          if o_p_coords.count(o_coords) == 0 and oo_coords == o_p.get_coords():
-            c_p.update_coords(o_coords)
+          
+          #ne/se
+          x_coords = [(c_p_c[0] + direction) % self.board_height, (c_p_c[1] + 1) % self.board_width]
+          ox_coords = [(c_p_c[0] + 2 * direction) % self.board_height, (c_p_c[1] + 1) % self.board_width]
+          if o_p_coords.count(x_coords) == 0 and ox_coords == o_p.get_coords()[:]:
+            c_p.update_coords(x_coords)
+            print ('AI-x moved ne/se to attack position')
             return True
 
         elif c_p.get_symbol().strip().lower() == self.game_pieces[1]: #t
-          t_coords = c_p.get_coords()
+          #nw/sw
+          t_coords = c_p.get_coords()[:]
           moved = False
-          while o_p_coords.count([(t_coords[0] + direction) % self.board_height, (t_coords[1] - 1) % self.board_width]) == 0 and t_coords[0] + direction != self.board_height and t_coords[0] + direction != 0 and  t_coords[1] - 1 != 0:
+          while o_p_coords.count([(t_coords[0] + direction) % self.board_height, (t_coords[1] - 1) % self.board_width]) == 0 \
+            and t_coords[0] + direction != self.board_height \
+            and t_coords[0] + direction != 0 \
+            and  t_coords[1] - 1 != 0:
             t_coords = [(t_coords[0] + direction) % self.board_height, (t_coords[1] - 1) % self.board_width]
             moved = True
           
           ot_coords = [(t_coords[0] + direction) % self.board_height, t_coords[1]]
           if o_p_coords.count(ot_coords) >= 1 and moved:
             c_p.update_coords(t_coords)
+            print ('AI-t moved nw/sw to attack position')
             return True
           
-          t_coords = c_p.get_coords()
+          #ne/se
+          t_coords = c_p.get_coords()[:]
           moved = False
-          while o_p_coords.count([(t_coords[0] + direction) % self.board_height, (t_coords[1] + 1) % self.board_width]) == 0 and t_coords[0] + direction != self.board_height and t_coords[0] + direction != 0 and  t_coords[1] + 1 != self.board_width:
+          while o_p_coords.count([(t_coords[0] + direction) % self.board_height, (t_coords[1] + 1) % self.board_width]) == 0 \
+            and t_coords[0] + direction != self.board_height \
+            and t_coords[0] + direction != 0 \
+            and  t_coords[1] + 1 != self.board_width:
             t_coords = [(t_coords[0] + direction) % self.board_height, (t_coords[1] + 1) % self.board_width]
             moved = True
           
           ot_coords = [(t_coords[0] + direction) % self.board_height, t_coords[1]]
           if o_p_coords.count(ot_coords) >= 1 and moved:
             c_p.update_coords(t_coords)
+            print ('AI-t moved ne/se to attack position')
             return True
 
-          t_coords = c_p.get_coords()
+          #n/s
+          t_coords = c_p.get_coords()[:]
           moved = False
-          while o_p_coords.count([(t_coords[0] + direction) % self.board_height, t_coords[1]]) == 0 and t_coords[0] + direction != self.board_height and t_coords[0] + direction != 0:
+          while o_p_coords.count([(t_coords[0] + direction) % self.board_height, t_coords[1]]) == 0 \
+            and t_coords[0] + direction != self.board_height \
+            and t_coords[0] + direction != 0:
             t_coords = [(t_coords[0] + direction) % self.board_height, t_coords[1]]
             moved = True
 
           ot_coords = [(t_coords[0] + direction) % self.board_height, t_coords[1]]
           if o_p_coords.count(ot_coords) >= 1 and moved:
             c_p.update_coords(t_coords)
+            print ('AI-t moved n/s to attack position')
             return True
-
-          t_coords = c_p.get_coords()
+          
+          #w
+          t_coords = c_p.get_coords()[:]
           moved = False
-          while o_p_coords.count([t_coords[0], (t_coords[1] - 1) % self.board_width]) == 0 and t_coords[1] - 1 != 0:
+          while o_p_coords.count([t_coords[0], (t_coords[1] - 1) % self.board_width]) == 0 \
+            and t_coords[1] - 1 != 0:
             t_coords = [t_coords[0], (t_coords[1] - 1) % self.board_width]
             moved = True
           
           ot_coords = [(t_coords[0] + direction) % self.board_height, t_coords[1]]
           if o_p_coords.count(ot_coords) >= 1 and moved:
             c_p.update_coords(t_coords)
+            print ('AI-t moved w to attack position')
             return True
-
-          t_coords = c_p.get_coords()
+          
+          #e
+          t_coords = c_p.get_coords()[:]
           moved = False
-          while o_p_coords.count([t_coords[0], (t_coords[1] + 1) % self.board_width]) == 0 and t_coords[1] + 1 != self.board_width:
+          while o_p_coords.count([t_coords[0], (t_coords[1] + 1) % self.board_width]) == 0 \
+            and t_coords[1] + 1 != self.board_width:
             t_coords = [t_coords[0], (t_coords[1] + 1) % self.board_width]
             moved = True
           
           ot_coords = [(t_coords[0] + direction) % self.board_height, t_coords[1]]
           if o_p_coords.count(ot_coords) >= 1 and moved:
             c_p.update_coords(t_coords)
+            print ('AI-t moved e to attack position')
             return True
 
-        elif c_p.get_symbol().strip().lower() == self.game_pieces[2]: #x
-          x_coords = [c_p_c[0], (c_p_c[1] - 1) % self.board_width]
-          ox_coords = [(c_p_c[0] + direction) % self.board_height, (c_p_c[1] - 1) % self.board_width]
-          if o_p_coords.count(x_coords)  == 0 and ox_coords == o_p.get_coords():
-            c_p.update_coords(x_coords)
+        elif c_p.get_symbol().strip().lower() == self.game_pieces[2]: #o
+          #w
+          o_coords = [c_p_c[0], (c_p_c[1] - 1) % self.board_width]
+          oo_coords = [(c_p_c[0] + direction) % self.board_height, (c_p_c[1] - 1) % self.board_width]
+          if o_p_coords.count(o_coords)  == 0 and oo_coords == o_p.get_coords()[:]:
+            c_p.update_coords(o_coords)
+            print ('AI-o moved w to attack position')
             return True
           
-          x_coords = [c_p_c[0], (c_p_c[1] + 1) % self.board_width]
-          ox_coords = [(c_p_c[0] + direction) % self.board_height, (c_p_c[1] + 1) % self.board_width]
-          if o_p_coords.count(x_coords) == 0 and ox_coords == o_p.get_coords():
-            c_p.update_coords(x_coords)
+          #e
+          o_coords = [c_p_c[0], (c_p_c[1] + 1) % self.board_width]
+          oo_coords = [(c_p_c[0] + direction) % self.board_height, (c_p_c[1] + 1) % self.board_width]
+          if o_p_coords.count(o_coords) == 0 and oo_coords == o_p.get_coords()[:]:
+            c_p.update_coords(o_coords)
+            print ('AI-o moved e to attack position')
             return True
           
-          x_coords = [(c_p_c[0] + direction) % board_height, c_p_c[1]]
-          ox_coords = [(c_p_c[0] + 2 * direction) % self.board_height, c_p_c[1] + 1]
-          if o_p_coords.count(x_coords) == 0 and ox_coords == o_p.get_coords():
-            c_p.update_coords(x_coords)
+          #n/s
+          o_coords = [(c_p_c[0] + direction) % self.board_height, c_p_c[1]]
+          oo_coords = [(c_p_c[0] + 2 * direction) % self.board_height, c_p_c[1] + 1]
+          if o_p_coords.count(o_coords) == 0 and oo_coords == o_p.get_coords()[:]:
+            c_p.update_coords(o_coords)
+            print ('AI-o moved n/s to attack position')
             return True
 
       return False
 
 
 
-
   def ai_move(self, this_player):
-    piece_to_move = randint(0, 3)
+    print('Nothing to attack, AI will just move someone.')
+    piece_to_move = randint(0, 2)
 
-    if self.game_pieces[piece_to_move] == 'x':
-      direction = randint(0, 4)
+    if self.game_pieces[piece_to_move] == 'o':
+      direction = randint(0, 3)
 
       if direction == 0:
-        return move_n(this_player, direction)
+        print('AI-o moved n')
+        return self.move_n(this_player, piece_to_move)
       elif direction == 1:
-        return move_w(this_player, direction)
+        print('AI-o moved w')
+        return self.move_w(this_player, piece_to_move)
       elif direction == 2:
-        return move_s(this_player, direction)
+        print('AI-o moved s')
+        return self.move_s(this_player, piece_to_move)
       elif direction == 3:
-        return move_e(this_player, direction)
-      else:
-        return False
+        print('AI-o moved e')
+        return self.move_e(this_player, piece_to_move)
 
     elif self.game_pieces[piece_to_move] == 't':
-      direction = randint(0, 8)
+      direction = randint(0, 7)
 
       if direction == 0:
-        return move_n(this_player, direction, True)
+        print('AI-t moved n')
+        return self.move_n(this_player, piece_to_move, True)
       elif direction == 1:
-        return move_w(this_player, direction, True)
+        print('AI-t moved w')
+        return self.move_w(this_player, piece_to_move, True)
       elif direction == 2:
-        return move_s(this_player, direction, True)
+        print('AI-t moved s')
+        return self.move_s(this_player, piece_to_move, True)
       elif direction == 3:
-        return move_e(this_player, direction, True)
+        print('AI-t moved e')
+        return self.move_e(this_player, piece_to_move, True)
       elif direction == 4:
-        return move_nw(this_player, direction, True)
+        print('AI-t moved nw')
+        return self.move_nw(this_player, piece_to_move, True)
       elif direction == 5:
-        return move_ne(this_player, direction, True)
+        print('AI-t moved ne')
+        return self.move_ne(this_player, piece_to_move, True)
       elif direction == 6:
-        return move_sw(this_player, direction, True)
+        print('AI-t moved sw')
+        return self.move_sw(this_player, piece_to_move, True)
       elif direction == 7:
-        return move_se(this_player, direction, True)
-      else:
-        return False
+        print('AI-t moved se')
+        return self.move_se(this_player, piece_to_move, True)
 
-    elif self.game_pieces[piece_to_move] == 'o':
-      direction = randint(0, 4)
+    elif self.game_pieces[piece_to_move] == 'x':
+      direction = randint(0, 3)
 
       if direction == 0:
-        return move_nw(this_player, direction)
+        print('AI-x moved nw')
+        return self.move_nw(this_player, piece_to_move)
       elif direction == 1:
-        return move_ne(this_player, direction)
+        print('AI-x moved ne')
+        return self.move_ne(this_player, piece_to_move)
       elif direction == 2:
-        return move_sw(this_player, direction)
+        print('AI-x moved sw')
+        return self.move_sw(this_player, piece_to_move)
       elif direction == 3:
-        return move_se(this_player, direction)
-      else: 
-        return False
+        print('AI-x moved se')
+        return self.move_se(this_player, piece_to_move)
 
     else:
       return False
@@ -796,7 +810,8 @@ class board_game():
         while self.turn(2) == False:
           pass
       else:
-        self.turn_ai()
+        while self.turn_ai(2) == False:
+          pass
       
       self.update_board()
         
@@ -819,6 +834,5 @@ class board_game():
       print('WHO KNOWS?')
 
 
-
-bg = board_game()
+bg = board_game(True)
 bg.play_game()
