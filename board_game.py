@@ -1,6 +1,5 @@
 #TODO: Allow both players to both move and attack in the same turn.
 #   x is only piece that can both move and attack
-#   t can only move or attack
 
 #TODO: Allow customizable piece selection and placement.
 
@@ -8,9 +7,8 @@
 
 #TODO: Add randomly varying attack strength. Will require larger health pools.
 
-#TODO: Allow multiple pieces to attack at once? Can't decide.
-
 from random import randint
+
 
 
 class player():
@@ -76,7 +74,7 @@ class piece():
 
 class board_game():
   def __init__(self, is_ai = False, height = None, width = 0):
-    
+    self.__mute = False
     self.__is_ai = is_ai
     
     if height != None:
@@ -111,9 +109,9 @@ class board_game():
     while not bk:
       cur_player = self.__players[this_player - 1]
       if this_player == 1:
-        print('Player 1:')
+        self.__report('Player 1:')
       else:
-        print('Player 2:')
+        self.__report('Player 2:')
         
       piece_select_str = 'Choose your move by typing the piece''s symbol or type ''help'': '
       for i in range(cur_player.get_pieces_remaining()):
@@ -124,7 +122,7 @@ class board_game():
       
       if piece_select.strip().lower() == 'help':
         help_str = 'Press the index assigned to select a piece or perform the action, type ''hp'' to see the hp for each piece, ''skip'' to skip your turn, or type ''board'' to display the board.'
-        print(help_str)
+        self.__report(help_str)
       elif piece_select.strip().lower() == 'hp':
         self.__display_hp()
       elif piece_select.strip().lower() == 'board':
@@ -138,7 +136,7 @@ class board_game():
               bk = True
               break
                               
-        print('Invalid input.')
+        self.__report('Invalid input.')
 
 
   def __parse_action(self, this_player, index):
@@ -170,14 +168,14 @@ class board_game():
       elif ['8', '4', '2', '6', 'w', 'W', 'a', 'A', 'x', 'X', 'd', 'D'].count(move_select) > 0:
         ret_bool = self.__move_o(this_player, move_select, index)
         
-    print('Inccorrect input, try again!')
+    self.__report('Inccorrect input, try again!')
     return ret_bool
 
 
   #Attack Function
   def __attack(self, this_player, index):
     hit = False
-    direction = -1 ** this_player
+    direction = (-1) ** this_player
     other_player = self.__players[this_player % 2]
     
     cur_piece = self.__players[this_player - 1].get_pieces()[index]
@@ -191,11 +189,11 @@ class board_game():
         hit = True
         
         if p.get_hp() == 0:
-          print('Piece ' + p.get_symbol() + ' is destroyed.')
+          self.__report('Piece ' + p.get_symbol() + ' is destroyed.')
           other_player.remove_pieces()
     
     if not hit:
-      print('Failed to hit.')
+      self.__report('Failed to hit.')
     
     return hit
 
@@ -211,7 +209,7 @@ class board_game():
     elif direction == '9' or direction.lower() == 'e':
       return self.__move_ne(this_player, index)
     else:
-      print('Incorrect input choice. Try again.')
+      self.__report('Incorrect input choice. Try again.')
       return False
 
 
@@ -234,7 +232,7 @@ class board_game():
     elif direction == '6' or direction.lower() == 'd':
       ret_bool = self.__move_e(this_player, index, True)
     else:
-      print('Incorrect input choice. Try again.')
+      self.__report('Incorrect input choice. Try again.')
     
     return ret_bool
 
@@ -249,7 +247,7 @@ class board_game():
     elif direction == '6' or direction.lower() == 'd':
       return self.__move_e(this_player, index)
     else:
-      print('Incorrect input choice. Try again.')
+      self.__report('Incorrect input choice. Try again.')
       return False
 
 
@@ -262,7 +260,7 @@ class board_game():
     
     for p in opp_pieces:
       if p.get_coords()[0] == new_coords[0] and p.get_coords()[1] == new_coords[1]:
-        print('Error: blocked by opponent.')
+        self.__report('Error: blocked by opponent.')
         return False
     
     while (multimove and new_coords[0] - 1 >= 0 and new_coords[1] - 1 >= 0):
@@ -285,7 +283,7 @@ class board_game():
     
     for p in opp_pieces:
       if p.get_coords()[0] == new_coords[0] and p.get_coords()[1] == new_coords[1]:
-        print('Error: blocked by opponent.')
+        self.__report('Error: blocked by opponent.')
         return False
     
     while (multimove and new_coords[0] + 1 < self.__board_height and new_coords[1] - 1 >= 0):
@@ -308,7 +306,7 @@ class board_game():
     
     for p in opp_pieces:
       if p.get_coords()[0] == new_coords[0] and p.get_coords()[1] == new_coords[1]:
-        print('Error: blocked by opponent.')
+        self.__report('Error: blocked by opponent.')
         return False
     
     while (multimove and new_coords[0] + 1 < self.__board_height and new_coords[1] + 1 < self.__board_width):
@@ -331,7 +329,7 @@ class board_game():
     
     for p in opp_pieces:
       if p.get_coords()[0] == new_coords[0] and p.get_coords()[1] == new_coords[1]:
-        print('Error: blocked by opponent.')
+        self.__report('Error: blocked by opponent.')
         return False
     
     while (multimove and new_coords[0] - 1 >= 0 and new_coords[1] + 1 < self.__board_width):
@@ -354,7 +352,7 @@ class board_game():
     
     for p in opp_pieces:
       if p.get_coords()[0] == new_coords[0] and p.get_coords()[1] == new_coords[1]:
-        print('Error: blocked by opponent.')
+        self.__report('Error: blocked by opponent.')
         return False
     
     while (multimove and new_coords[0] - 1 >= 0):
@@ -377,7 +375,7 @@ class board_game():
     
     for p in opp_pieces:
       if p.get_coords()[0] == new_coords[0] and p.get_coords()[1] == new_coords[1]:
-        print('Error: blocked by opponent.')
+        self.__report('Error: blocked by opponent.')
         return False
     
     while (multimove and new_coords[1] - 1 >= 0):
@@ -400,7 +398,7 @@ class board_game():
     
     for p in opp_pieces:
       if p.get_coords()[0] == new_coords[0] and p.get_coords()[1] == new_coords[1]:
-        print('Error: blocked by opponent.')
+        self.__report('Error: blocked by opponent.')
         return False
       
     while (multimove and new_coords[0] + 1 < self.__board_height):
@@ -423,7 +421,7 @@ class board_game():
     
     for p in opp_pieces:
       if p.get_coords()[0] == new_coords[0] and p.get_coords()[1] == new_coords[1]:
-        print('Error: blocked by opponent.')
+        self.__report('Error: blocked by opponent.')
         return False
       
     while (multimove and new_coords[1] + 1 < self.__board_width):
@@ -470,7 +468,7 @@ class board_game():
       hp_str += '\t' + cur_piece.get_symbol() + ' has ' + str(cur_piece.get_hp()) + ' remaining.\n'
       hp_str += '\t  ' + cur_piece.get_symbol() + ' located at: ' + str(cur_piece.get_coords()[:]) + '\n'
     
-    print(hp_str)
+    self.__report(hp_str)
 
 
   def __print_board(self):
@@ -480,7 +478,7 @@ class board_game():
       if i < self.__board_height - 1:
         board_str += ' '.join(['_' for j in range(self.__board_width)]) + '\n'
       
-    print(board_str)
+    self.__report(board_str)
 
 
   def __damage_all_pieces(self):
@@ -494,23 +492,31 @@ class board_game():
     self.__players[1].remove_pieces()
 
 
-  def __print_winner(self, mute = False):
+  def __print_winner(self):
     if self.__players[0].get_pieces_remaining() == 0 and self.__players[1].get_pieces_remaining() == 0:  
-      if not mute:
-        print('This should never happen... Draws are boring.')
+      self.__report('This should never happen... Draws are boring.')
       return 2
     elif self.__players[0].get_pieces_remaining() == 0 and self.__players[1].get_pieces_remaining() > 0:
-      if not mute:
-        print('PLAYER 2 WINS THE GAME')
+      self.__report('PLAYER 2 WINS THE GAME')
       return 1
     elif self.__players[0].get_pieces_remaining() > 0 and self.__players[1].get_pieces_remaining() == 0:
-      if not mute:
-        print('PLAYER 1 WINS THE GAME')
+      self.__report('PLAYER 1 WINS THE GAME')
       return 0
     else:
-      if not mute:
-        print('WHO KNOWS?')
+      self.__report('WHO KNOWS?')
       return 3
+
+
+  def __dbug(self, dbug_lst):
+    print('*****DEBUG STATEMENT*****')
+    for item in dbug_lst:
+      print('\t' + str(item))
+      
+    print('*****DEBUG STATEMENT*****')
+    
+  def __report(self, rep_str):
+    if not self.__mute:
+      print(rep_str)
 
 
   #AI!
@@ -522,8 +528,7 @@ class board_game():
       plyr_str = 'Player 2'
       
     while not bk:
-      if not mute:
-        print(plyr_str + ':')
+      self.__report(plyr_str + ':')
   
       if self.__ai_attack(this_player):
         plyr_str = plyr_str + ' attacked!'
@@ -531,18 +536,18 @@ class board_game():
       elif self.__ai_move_to_attack(this_player):
         plyr_str = plyr_str + ' moved to attack position!'
         bk = True
-      elif self.__ai_move(this_player):
+      else:
         plyr_str = plyr_str + ' flailed helplessly!'
-        bk = True
+        while not bk:
+          bk = self.__ai_move(this_player)
         
-      if not mute:
-        print(plyr_str)
+      self.__report(plyr_str)
 
 
   def __ai_attack(self, this_player):
     cur_player = self.__players[this_player - 1]
     other_player = self.__players[this_player % 2]
-    direction = -1 ** this_player
+    direction = (-1) ** this_player
 
     dfndr = None
     for i in range(cur_player.get_pieces_remaining()):
@@ -552,6 +557,8 @@ class board_game():
         if other_player.get_pieces()[j].get_coords()[:] == cur_piece_attk_coords \
           and (dfndr is None or other_player.get_pieces()[j].get_hp() < other_player.get_pieces()[dfndr].get_hp()):
           dfndr = j
+          
+          
 
     if dfndr is not None:
       other_player.get_pieces()[dfndr].update_hp()
@@ -564,7 +571,7 @@ class board_game():
   def __ai_move_to_attack(self, this_player):
     cur_player = self.__players[this_player - 1]
     other_player = self.__players[this_player % 2]
-    direction = -1 ** this_player
+    direction = (-1) ** this_player
 
     o_p_coords = []
     for o_p in other_player.get_pieces():
@@ -826,9 +833,11 @@ class board_game():
 
 
   #Driver function
-  def play_game(self):
+  def play_game(self, mute = False):
+    self.__mute = mute
+    
     while not (self.__players[0].get_pieces_remaining() <= 0 or self.__players[1].get_pieces_remaining() <= 0):
-      print('Turns left: ' + str(self.__turns_left))
+      self.__report('Turns left: ' + str(self.__turns_left))
       self.__update_board()
       self.__print_board()
       
@@ -856,29 +865,25 @@ class board_game():
     return self.__print_winner()
 
 
-  def play_game_ai(self, mute = True):
+  def play_game_ai(self, mute = False):
+    self.__mute = mute
     while not (self.__players[0].get_pieces_remaining() <= 0 or self.__players[1].get_pieces_remaining() <= 0):
-      if not mute:
-        print('Turns left: ' + str(self.__turns_left))
+      self.__report('Turns left: ' + str(self.__turns_left))
       
       self.__update_board()
-      if not mute:
-        self.__print_board()
+      self.__print_board()
       
       self.__turn_ai(1)
-      if not mute:
-        self.__display_hp()
+      self.__display_hp()
       
       if self.__players[1].get_pieces_remaining() == 0:
         break
       
       self.__update_board()
-      if not mute:
-        self.__print_board()
+      self.__print_board()
       
       self.__turn_ai(2)
-      if not mute:
-        self.__display_hp()
+      self.__display_hp()
       
       if self.__players[0].get_pieces_remaining() == 0:
         break
@@ -888,18 +893,22 @@ class board_game():
       else:
         self.__damage_all_pieces()
         
-    return self.__print_winner(mute)
+    return self.__print_winner()
 
 
 
-num_games = 10000
-winners = [0, 0, 0, 0]
-for i in range(num_games):
-  bg = board_game(True)
-  winners[bg.play_game_ai()] += 1
+def robot_fight(num_games, mute = True):
+  winners = [0, 0, 0, 0]
+  for i in range(num_games):
+    bg = board_game()
+    winners[bg.play_game_ai(mute)] += 1
+    
+  print(winners)
+  print('Player 1 wins: ' + str(winners[0] * 100.0 / num_games) + '% of games')
+  print('Player 2 wins: ' + str(winners[1] * 100.0 / num_games) + '% of games')
+  print('Draws: ' + str(winners[2] * 100.0 / num_games) + '% of games')
+  print('Uhohs...: ' + str(winners[3] * 100.0 / num_games) + '% of games')
   
-print(winners)
-print('Player 1 wins: ' + str(winners[0] * 100.0 / num_games) + '% of games')
-print('Player 2 wins: ' + str(winners[1] * 100.0 / num_games) + '% of games')
-print('Draws: ' + str(winners[2] * 100.0 / num_games) + '% of games')
-print('Uhohs...: ' + str(winners[3] * 100.0 / num_games) + '% of games')
+  
+board_game(True).play_game()
+#robot_fight(1000)
