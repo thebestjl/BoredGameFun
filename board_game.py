@@ -530,29 +530,27 @@ class board_game():
     else:
       plyr_str = 'Player 2'
       
-    while not bk:
-      self.__report(plyr_str + ':')
-  
-      if self.__ai_attack(this_player):
-        plyr_str = plyr_str + ' attacked!'
-        bk = True
-      elif self.__ai_move_to_attack(this_player):
-        plyr_str = plyr_str + ' moved to attack position!'
-        bk = True
-      else:
-        plyr_str = plyr_str + ' flailed helplessly!'
-        while not bk:
-          bk = self.__ai_move(this_player)
-        
-      self.__report(plyr_str)
+
+    self.__report(plyr_str + ':')
+    if self.__ai_attack(this_player):
+      plyr_str = plyr_str + ' attacked!'
+      bk = True
+    elif self.__ai_move_to_attack(this_player):
+      plyr_str = plyr_str + ' moved to attack position!'
+      bk = True
+    else:
+      plyr_str = plyr_str + ' flailed helplessly!'
+      while not bk:
+        bk = self.__ai_move(this_player)
+    self.__report(plyr_str)
 
 
   def __ai_attack(self, this_player):
     cur_player = self.__players[this_player - 1]
     other_player = self.__players[this_player % 2]
     direction = (-1) ** this_player
-
     dfndr = None
+    
     for i in range(cur_player.get_pieces_remaining()):
       cur_piece_attk_coords = cur_player.get_pieces()[i].get_coords()[:]
       cur_piece_attk_coords[0] = (cur_piece_attk_coords[0] + direction) % self.__board_height
@@ -573,7 +571,6 @@ class board_game():
     cur_player = self.__players[this_player - 1]
     other_player = self.__players[this_player % 2]
     direction = (-1) ** this_player
-
     o_p_coords = []
     for o_p in other_player.get_pieces():
       o_p_coords.append(o_p.get_coords()[:])
@@ -584,7 +581,7 @@ class board_game():
         and self.__ai_move_to_attack_x(direction, c_p, o_p_coords): #x
         return True
       elif c_p.get_symbol().strip().lower() == self.__game_pieces[1] \
-        and self.__ai_move_to_attack_t(direction, this_player, i, o_p_coords): #t
+        and self.__ai_move_to_attack_t(this_player, direction, i, o_p_coords): #t
         return True
       elif c_p.get_symbol().strip().lower() == self.__game_pieces[2] \
         and self.__ai_move_to_attack_o(direction, c_p, o_p_coords): #o
